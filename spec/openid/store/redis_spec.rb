@@ -90,25 +90,25 @@ describe OpenID::Store::Redis do
   describe '#use_nonce' do
     it 'allows nonce to be used once' do
       timestamp, salt = Nonce::split_nonce(Nonce::mk_nonce)
-      subject.use_nonce(url, timestamp.to_i, salt).should be_true
+      subject.use_nonce(url, timestamp.to_i, salt).should be_truthy
     end
 
     it 'does not allow multiple uses of nonce' do
       timestamp, salt = Nonce::split_nonce(Nonce::mk_nonce)
       subject.use_nonce(url, timestamp.to_i, salt)
-      subject.use_nonce(url, timestamp.to_i, salt).should be_false
+      subject.use_nonce(url, timestamp.to_i, salt).should be_falsey
     end
 
     it 'creates nonce if time is within skew' do
       now = Time.now
       timestamp = now.to_f + OpenID::Nonce.skew - 1
-      subject.use_nonce(url, timestamp, 'salt').should be_true
+      subject.use_nonce(url, timestamp, 'salt').should be_truthy
     end
 
     it 'returns false if time is beyond skew' do
       now = Time.now
       timestamp = now.to_f + OpenID::Nonce.skew + 1
-      subject.use_nonce(url, timestamp, 'salt').should be_false
+      subject.use_nonce(url, timestamp, 'salt').should be_falsey
     end
 
     it 'removes nonce from redis after skew timeout' do
@@ -133,7 +133,7 @@ describe OpenID::Store::Redis do
     it 'leaves association data' do
       redis.set 'openid-store:a:url', 'testtest'
       subject.cleanup_nonces
-      redis.keys.should have(1).item
+      redis.keys.size.should eq(1)
     end
   end
 
@@ -152,7 +152,7 @@ describe OpenID::Store::Redis do
       ts, salt = Nonce::split_nonce(Nonce::mk_nonce)
       subject.use_nonce(url, ts.to_i, salt)
       subject.cleanup_associations
-      redis.keys.should have(1).item
+      redis.keys.size.should eq(1)
     end
   end
 
